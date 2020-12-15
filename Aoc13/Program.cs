@@ -76,40 +76,39 @@ namespace AoC2
             return time;
         }
 
-        /// <summary>
-        /// Calculates the two first matches from the rules of given infos.
-        /// This information can be used too speed up the itteration
-        /// </summary>
-        /// <param name="curr"></param>
-        /// <param name="next"></param>
-        /// <param name="step"></param>
-        /// <returns></returns>
-        private static long GetStartAndInterval(BusInfo curr, BusInfo next, out long step)
+        private static long ShowCommon(long start, (int Step, int Offset) serie1, (int Step, int Offset) serie2)
         {
-            //step, curr.Index, next.Id, next.Index - curr.Index
-            var large = curr.Id;
-            var small = next.Id;
-            var value = large;
-            long? first = null;
-            do
+            var s1 = serie1;
+            var s2 = serie2;
+
+            if (start > 0)
             {
-                if (value % small == 0)
-                {
-                    Console.WriteLine(value);
-                    if (!first.HasValue)
-                    {
-                        first = value;
-                    }
-                    else
-                    {
-                        step = value - first.Value;
-                        break;
-                    }
-                }
-                value += large;
-                s_cancelSrc.Token.ThrowIfCancellationRequested();
-            } while (true);
-            return first.Value;
+                s1 = (Step: s1.Step, Offset: 0);
+                s2 = (Step: s2.Step, Offset: 0);
+            }
+
+            var common = GetCommon(start, s1, s2);
+            var m1 = (common - serie1.Offset) / serie1.Step;
+            var m2 = (common - serie2.Offset) / serie2.Step;
+            Console.WriteLine($"Common: {common}");
+            Console.WriteLine($"{serie1.Step}*{m1}+{serie1.Offset}={serie1.Step * m1 + serie1.Offset}");
+            Console.WriteLine($"{serie2.Step}*{m2}+{serie2.Offset}={serie2.Step * m2 + serie2.Offset}");
+            return common;
+        }
+
+        private static long GetCommon(long start, (int Step, int Offset) serie1, (int Step, int Offset) serie2)
+        {
+            var s1 = start + serie1.Step + serie1.Offset;
+            var s2 = start + serie2.Step + serie2.Offset;
+
+            while (s1 != s2)
+            {
+                if (s1 < s2)
+                    s1 += serie1.Step;
+                else
+                    s2 += serie2.Step;
+            }
+            return s1;
         }
 
         [DebuggerDisplay("{ToDebugString()}")]
